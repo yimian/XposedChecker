@@ -13,6 +13,7 @@
         <item>Detect EdXposed env</item>
         <item>Detect Xposed modules</item>
         <item>Detect magiskd or adbd</item>
+        <item>Detect riru module</item>
     </string-array>
     <string-array name="root_status">
         <item>Error</item>

@@ -13,6 +13,7 @@
         <item>检测EdXposed环境</item>
         <item>Xposed模块检查</item>
         <item>检测magiskd和adbd进程</item>
+        <item>检测riru模块</item>
     </string-array>
     <string-array name="root_status">
         <item>出错</item>

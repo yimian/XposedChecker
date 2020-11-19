@@ -477,16 +477,16 @@ public class MainActivity extends AppCompatActivity {
         return 0;
     }
 
-    @Keep
     /**
      * 检测是否能找到magiskd或者adbd
      */
+    @Keep
     private int check12() {
         ActivityManager manager = (ActivityManager) this.getSystemService(ACTIVITY_SERVICE);
         List<RunningAppProcessInfo> procInfos = manager.getRunningAppProcesses();
         ArrayList<String> processes = new ArrayList<>();
         Log.d(LOG_TAG, "runningAppProcesses length is " + procInfos.size());
-        for(RunningAppProcessInfo runningProcInfo: procInfos) {
+        for (RunningAppProcessInfo runningProcInfo : procInfos) {
             Log.d(LOG_TAG, runningProcInfo.processName);
             if (runningProcInfo.processName.equals("magiskd")) {
                 processes.add("magiskd");
@@ -516,6 +516,26 @@ public class MainActivity extends AppCompatActivity {
 
     @Keep
     private int check13() {
+        CommandResult commandResult = Shell.run("ls /system/lib/");
+        String out = commandResult.getStdout();
+        Log.d(LOG_TAG, out);
+        if (out.contains("riru")) {
+            techDetails.add("find riru module in /system/lib: " + toStatus(true));
+            return 1;
+        }
+        CommandResult commandResult2 = Shell.run("ls /system/lib64/");
+        out = commandResult2.getStdout();
+        Log.d(LOG_TAG, out);
+        if (out.contains("riru")) {
+            techDetails.add("find riru module in /system/lib64: " + toStatus(true));
+            return 1;
+        }
+        techDetails.add("find no riru module in /system/lib(64) directory" + toStatus(false));
+        return 0;
+    }
+
+    @Keep
+    private int check14() {
         try {
             // techDetails.add(getString(R.string.item_root));
             techDetails.add("Root detection is not supported now!");
