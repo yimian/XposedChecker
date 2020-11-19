@@ -1,6 +1,8 @@
 package ml.w568w.checkxposed.ui;
 
 import android.annotation.SuppressLint;
+import android.app.ActivityManager;
+import android.app.ActivityManager.RunningAppProcessInfo;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageInfo;
@@ -12,6 +14,8 @@ import android.os.Process;
 import android.support.annotation.Keep;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
+import android.text.LoginFilter;
+import android.text.TextUtils;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -27,6 +31,7 @@ import com.jrummyapps.android.shell.CommandResult;
 import com.jrummyapps.android.shell.Shell;
 import com.tencent.bugly.crashreport.CrashReport;
 import com.unionpay.mobile.device.utils.RootCheckerUtils;
+// import com.unionpay.mobile.device.utils.RootCheckerUtils;
 
 import java.io.BufferedReader;
 import java.io.ByteArrayOutputStream;
@@ -60,6 +65,7 @@ public class MainActivity extends AppCompatActivity {
     private static final String[] XPOSED_APPS_LIST = new String[]{"de.robv.android.xposed.installer", "io.va.exposed", "org.meowcat.edxposed.manager", "com.topjohnwu.magisk", "com.doubee.ig", "com.soft.apk008v", "com.soft.controllers", "biz.bokhorst.xprivacy"};
     private static final int ALL_ALLOW = 0777;
     private static final File ZUPER_HOOK_PATH = new File("/system/xbin/ZUPERFAKEFILE");
+    private static final String LOG_TAG = "XposedChecker";
     ListView mListView;
     TextView mStatus;
     BaseAdapter mAdapter;
@@ -69,6 +75,7 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setTitle("Xposed Checker");
         CHECK_ITEM = getResources().getStringArray(R.array.inspect_item);
+        Log.d(LOG_TAG, String.format("CHECK_ITEM length is %d", CHECK_ITEM.length));
         ROOT_STATUS = getResources().getStringArray(R.array.root_status);
         try {
 
@@ -190,6 +197,7 @@ public class MainActivity extends AppCompatActivity {
                     status.add(0);
                 }
             }
+            Log.d(LOG_TAG, String.format("status length is %d", status.size()));
             return null;
         }
     }
@@ -470,10 +478,49 @@ public class MainActivity extends AppCompatActivity {
     }
 
     @Keep
+    /**
+     * 检测是否能找到magiskd或者adbd
+     */
     private int check12() {
+        ActivityManager manager = (ActivityManager) this.getSystemService(ACTIVITY_SERVICE);
+        List<RunningAppProcessInfo> procInfos = manager.getRunningAppProcesses();
+        ArrayList<String> processes = new ArrayList<>();
+        Log.d(LOG_TAG, "runningAppProcesses length is " + procInfos.size());
+        for(RunningAppProcessInfo runningProcInfo: procInfos) {
+            Log.d(LOG_TAG, runningProcInfo.processName);
+            if (runningProcInfo.processName.equals("magiskd")) {
+                processes.add("magiskd");
+            }
+            if (runningProcInfo.processName.equals("adbd")) {
+                processes.add("adbd");
+            }
+        }
+
+        CommandResult commandResult = Shell.run("ps -ef");
+        String out = commandResult.getStdout();
+        Log.d(LOG_TAG, out);
+        if (out.contains("magisk")) {
+            processes.add("magisk");
+        }
+        if (out.contains("adbd")) {
+            processes.add("adbd");
+        }
+
+        if (processes.size() > 0) {
+            techDetails.add("Found processes: " + TextUtils.join(",", processes));
+            return 1;
+        }
+        techDetails.add("getRunningAppProcesses or ps to find magiskd or adbd: " + toStatus(false));
+        return 0;
+    }
+
+    @Keep
+    private int check13() {
         try {
-            techDetails.add(getString(R.string.item_root));
-            return RootCheckerUtils.detect(this) ? 1 : 0;
+            // techDetails.add(getString(R.string.item_root));
+            techDetails.add("Root detection is not supported now!");
+            return 1;
+            // return RootCheckerUtils.detect(this) ? 1 : 0;
         } catch (Throwable t) {
             t.printStackTrace();
             techDetails.add(Log.getStackTraceString(t));
